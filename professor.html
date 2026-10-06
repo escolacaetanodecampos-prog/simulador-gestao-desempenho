@@ -182,8 +182,10 @@ function mostrarDetalhes(indice) {
       "<h3>Produções</h3>" + blocoObjeto(producoes) +
       "<h3>Consequências</h3>" + blocoObjeto(consequencias) +
       "<h3>Dossiê do gestor</h3><p>" + escapar(x["Dossiê do gestor"]) + "</p>" +
-      "<p><button type='button' onclick='document.querySelector("#detalhesResultado").innerHTML=""'>Fechar detalhes</button></p>" +
+      "<p><button type='button' id='fecharDetalhes'>Fechar detalhes</button></p>" +
     "</section>";
+  const fechar = document.querySelector("#fecharDetalhes");
+  if (fechar) fechar.addEventListener("click", function(){ document.querySelector("#detalhesResultado").innerHTML = ""; });
 }
 
 document.querySelector("#entrarProfessor").addEventListener("click", liberarPainel);
