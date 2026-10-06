@@ -1,34 +1,196 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel do Professor — Simulador RH</title><link rel="stylesheet" href="style.css"></head><body><header><b>PAINEL DO PROFESSOR</b><span>Resultados do Simulador RH</span></header><main><section class="card" id="loginProfessor"><small>ACESSO RESTRITO</small><h1>Acesso ao Painel do Professor</h1><p>Informe a senha/código de acesso para visualizar e consolidar os resultados dos estudantes.</p><label>Senha/código<input id="senhaProfessor" type="password" inputmode="numeric" autocomplete="off" placeholder="Digite o código de acesso"></label><button id="entrarProfessor">Acessar painel</button><p id="erroProfessor" style="display:none;color:#b42318;font-weight:700">Senha/código incorreto.</p><p><a href="index.html">← Voltar ao simulador</a></p></section><section class="card" id="painelProfessor" style="display:none"><h1>Resultados do simulador</h1><p>Os resultados concluídos são registrados automaticamente na base REC_RH. O painel consulta os registros centralizados.</p><button id="atualizarResultados">Atualizar resultados</button><a href="https://docs.google.com/spreadsheets/d/1q9n9nwKw3lmVAiJiOD0l6pNasGkubC17wU2xBbLmWOw/edit?usp=sharing" target="_blank" rel="noopener" style="display:inline-block;margin-left:8px;padding:10px 16px;border-radius:8px;background:#1a73e8;color:#fff;text-decoration:none;font-weight:700">Consultar dados na planilha</a><div id="statusResultados" class="notice">Aguardando consulta...</div><div id="out"></div></section></main><script>
-const CODIGO_PROFESSOR="131313";
-const API_URL="https://script.google.com/macros/s/AKfycbwrrIUSuthv0W1t0mZjFlctC0fQHWAQ5A8OLwLilbRrDp3om71PUax7vcAe3cOBBk06/exec";
-function liberarPainel(){const senha=document.querySelector("#senhaProfessor").value.trim();if(senha!==CODIGO_PROFESSOR){document.querySelector("#erroProfessor").style.display="block";document.querySelector("#senhaProfessor").focus();return}sessionStorage.setItem("painelProfessorAutorizado","1");document.querySelector("#loginProfessor").style.display="none";document.querySelector("#painelProfessor").style.display="block";carregarResultados()}
-function verificarAcesso(){if(sessionStorage.getItem("painelProfessorAutorizado")==="1"){document.querySelector("#loginProfessor").style.display="none";document.querySelector("#painelProfessor").style.display="block";carregarResultados()}}
-function escapar(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function carregarResultados(){
-document.querySelector("#statusResultados").textContent="Consultando resultados...";
-const callback="recRhCallback_"+Date.now();
-window[callback]=function(resp){
-try{renderResultados(resp&&resp.resultados?resp.resultados:[]);document.querySelector("#statusResultados").textContent="Resultados atualizados automaticamente."}
-catch(e){document.querySelector("#statusResultados").textContent="Erro ao interpretar os resultados."}
-finally{delete window[callback];const s=document.getElementById(callback+"_script");if(s)s.remove()}
-};
-const s=document.createElement("script");s.id=callback+"_script";s.src=API_URL+"?callback="+encodeURIComponent(callback)+"&t="+Date.now();s.onerror=function(){document.querySelector("#statusResultados").textContent="Não foi possível consultar o REC_RH. Verifique a implantação do Apps Script."};document.body.appendChild(s);
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel do Professor — Gestão de Desempenho</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <b>PAINEL DO PROFESSOR</b>
+  <span>Simulador de Gestão de Desempenho</span>
+</header>
+<main>
+  <section class="card" id="loginProfessor">
+    <small>ACESSO RESTRITO</small>
+    <h1>Acesso ao Painel do Professor</h1>
+    <p>Informe o código de acesso para visualizar os resultados do Simulador de Gestão de Desempenho.</p>
+    <label>Senha/código
+      <input id="senhaProfessor" type="password" inputmode="numeric" autocomplete="off" placeholder="Digite o código de acesso">
+    </label>
+    <button id="entrarProfessor">Acessar painel</button>
+    <p id="erroProfessor" style="display:none;color:#b42318;font-weight:700">Senha/código incorreto.</p>
+    <p><a href="index.html">← Voltar ao simulador</a></p>
+  </section>
+  <section class="card" id="painelProfessor" style="display:none">
+    <h1>Resultados do Simulador de Gestão de Desempenho</h1>
+    <p>Os resultados são consultados exclusivamente no sistema <strong>simula_desempenho</strong>, na aba <strong>DESEMPENHO</strong>.</p>
+    <button id="atualizarResultados">Atualizar resultados</button>
+    <a href="https://docs.google.com/spreadsheets/d/17YjoP4JBzUITlu3XaEWEz7amYsUvEAZ9LBcfdKR-DR0/edit?gid=977469903#gid=977469903" target="_blank" rel="noopener" style="display:inline-block;margin-left:8px;padding:10px 16px;border-radius:8px;background:#1a73e8;color:#fff;text-decoration:none;font-weight:700">Consultar dados na planilha</a>
+    <button id="sairProfessor" style="margin-left:8px">Sair</button>
+    <div id="statusResultados" class="notice">Aguardando consulta...</div>
+    <div id="out"></div>
+  </section>
+</main>
+<script>
+const CODIGO_PROFESSOR = "131313";
+const API_URL = "https://script.google.com/macros/s/AKfycbyJ0eRDfjHPulR9tqv-yvtEy_NvOXPEUeJvYIkMrKUc_3r9Z6qseP9Mni2TkKoOqxTx/exec";
+
+function escapar(v) {
+  return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
-function renderResultados(data){
-data=data||[];
-let d1=0,d2=0,d3=0;
-data.forEach(function(x){d1+=Number(x["Descritor 1"]||0);d2+=Number(x["Descritor 2"]||0);d3+=Number(x["Descritor 3"]||0)});
-let n=data.length;
-let media=function(v){return n?Math.round(v/n):0};
-let rows=data.map(function(x){return "<tr><td>"+escapar(x["Participante"])+"</td><td>"+escapar(x["Turma"])+"</td><td>"+escapar(x["Descritor 1"])+"%</td><td>"+escapar(x["Descritor 2"])+"%</td><td>"+escapar(x["Descritor 3"])+"%</td><td>"+escapar(x["Contratado"])+"</td></tr>"}).join("");
-document.querySelector("#out").innerHTML="<h2>"+n+" resultado(s) registrado(s)</h2><div class='grid'><div class='notice'><div class='score'>"+media(d1)+"%</div>Descritor 1 — Recrutamento/Seleção</div><div class='notice'><div class='score'>"+media(d2)+"%</div>Descritor 2 — CHA</div><div class='notice'><div class='score'>"+media(d3)+"%</div>Descritor 3 — T&D</div></div><h2>Registros</h2><table><tr><th>Participante</th><th>Turma</th><th>D1</th><th>D2</th><th>D3</th><th>Contratado</th></tr>"+(rows||"<tr><td colspan='6'>Nenhum resultado registrado ainda.</td></tr>")+"</table>";
+
+function liberarPainel() {
+  const senha = document.querySelector("#senhaProfessor").value.trim();
+  if (senha !== CODIGO_PROFESSOR) {
+    document.querySelector("#erroProfessor").style.display = "block";
+    document.querySelector("#senhaProfessor").focus();
+    return;
+  }
+  sessionStorage.setItem("painelGestaoDesempenhoAutorizado", "1");
+  document.querySelector("#erroProfessor").style.display = "none";
+  document.querySelector("#loginProfessor").style.display = "none";
+  document.querySelector("#painelProfessor").style.display = "block";
+  carregarResultados();
 }
-document.querySelector("#entrarProfessor").onclick=liberarPainel;
-document.querySelector("#senhaProfessor").addEventListener("keydown",function(e){if(e.key==="Enter")liberarPainel()});
-document.querySelector("#atualizarResultados").onclick=carregarResultados;
+
+function verificarAcesso() {
+  if (sessionStorage.getItem("painelGestaoDesempenhoAutorizado") === "1") {
+    document.querySelector("#loginProfessor").style.display = "none";
+    document.querySelector("#painelProfessor").style.display = "block";
+    carregarResultados();
+  }
+}
+
+function sairPainel() {
+  sessionStorage.removeItem("painelGestaoDesempenhoAutorizado");
+  document.querySelector("#painelProfessor").style.display = "none";
+  document.querySelector("#loginProfessor").style.display = "block";
+  document.querySelector("#senhaProfessor").value = "";
+  document.querySelector("#senhaProfessor").focus();
+}
+
+async function carregarResultados() {
+  const status = document.querySelector("#statusResultados");
+  status.textContent = "Consultando resultados do Simulador de Gestão de Desempenho...";
+  try {
+    const resposta = await fetch(API_URL + "?acao=resultados&t=" + Date.now(), { method:"GET", cache:"no-store" });
+    if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+    const dados = await resposta.json();
+    if (!dados || dados.ok !== true) throw new Error("Resposta inválida da API.");
+    renderResultados(Array.isArray(dados.resultados) ? dados.resultados : []);
+    status.textContent = "Resultados atualizados. Fonte: simula_desempenho / DESEMPENHO.";
+  } catch (erro) {
+    console.error(erro);
+    status.innerHTML = "<strong>Não foi possível consultar os resultados.</strong><br>Verifique a implantação do Apps Script e tente novamente.";
+  }
+}
+
+function numero(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function parseObjeto(valor) {
+  if (!valor) return {};
+  if (typeof valor === "object") return valor;
+  try { return JSON.parse(valor); } catch (e) { return {}; }
+}
+
+function formatarData(valor) {
+  if (!valor) return "";
+  const d = new Date(valor);
+  if (Number.isNaN(d.getTime())) return escapar(valor);
+  return d.toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"});
+}
+
+function renderResultados(data) {
+  data = data || [];
+  if (!data.length) {
+    document.querySelector("#out").innerHTML = "<h2>Nenhum resultado registrado</h2>";
+    return;
+  }
+
+  const totalParticipantes = data.length;
+  const mediaNotas = data.reduce((s,x) => s + numero(x["Nota"]),0) / totalParticipantes;
+  const mediaPontos = data.reduce((s,x) => s + numero(x["Total"]),0) / totalParticipantes;
+  const mediaMax = data.reduce((s,x) => s + numero(x["Máximo"]),0) / totalParticipantes;
+
+  window.resultadosPainel = data;
+
+  const rows = data.map(function(x, indice) {
+    return "<tr>" +
+      "<td>" + escapar(x["Participante"]) + "</td>" +
+      "<td>" + escapar(x["Série"]) + "</td>" +
+      "<td>" + escapar(x["Turma"]) + "</td>" +
+      "<td>" + escapar(x["Colaborador"]) + "</td>" +
+      "<td>" + escapar(x["Nota"]) + "</td>" +
+      "<td>" + escapar(x["Total"]) + "/" + escapar(x["Máximo"]) + "</td>" +
+      "<td>" + escapar(formatarData(x["Data/Hora"])) + "</td>" +
+      "<td><button type='button' onclick='mostrarDetalhes(" + indice + ")'>Detalhes</button></td>" +
+      "</tr>";
+  }).join("");
+
+  document.querySelector("#out").innerHTML =
+    "<div class='grid'>" +
+      "<div class='notice'><div class='score'>" + Math.round(mediaNotas) + "</div>Nota média</div>" +
+      "<div class='notice'><div class='score'>" + Math.round(mediaPontos) + "</div>Pontuação média</div>" +
+      "<div class='notice'><div class='score'>" + Math.round(mediaMax) + "</div>Máximo médio</div>" +
+      "<div class='notice'><div class='score'>" + totalParticipantes + "</div>Resultado(s)</div>" +
+    "</div>" +
+    "<h2>Registros</h2>" +
+    "<div style='overflow-x:auto'><table>" +
+      "<tr><th>Participante</th><th>Série</th><th>Turma</th><th>Colaborador</th><th>Nota</th><th>Pontos</th><th>Data</th><th></th></tr>" +
+      rows +
+    "</table></div>" +
+    "<div id='detalhesResultado' style='margin-top:20px'></div>";
+}
+
+function mostrarDetalhes(indice) {
+  const x = window.resultadosPainel[indice];
+  if (!x) return;
+
+  const porEtapa = parseObjeto(x["Por etapa"]);
+  const descritores = parseObjeto(x["Descritores"]);
+  const respostas = parseObjeto(x["Respostas"]);
+  const producoes = parseObjeto(x["Produções"]);
+  const consequencias = parseObjeto(x["Consequências"]);
+
+  function blocoObjeto(obj) {
+    const chaves = Object.keys(obj || {});
+    if (!chaves.length) return "<em>Sem dados.</em>";
+    return chaves.map(function(k) {
+      return "<p><strong>" + escapar(k) + ":</strong> " +
+        escapar(typeof obj[k] === "object" ? JSON.stringify(obj[k]) : obj[k]) + "</p>";
+    }).join("");
+  }
+
+  document.querySelector("#detalhesResultado").innerHTML =
+    "<section class='card'>" +
+      "<h2>Detalhes da avaliação</h2>" +
+      "<p><strong>Participante:</strong> " + escapar(x["Participante"]) + "</p>" +
+      "<p><strong>Série:</strong> " + escapar(x["Série"]) + "</p>" +
+      "<p><strong>Turma:</strong> " + escapar(x["Turma"]) + "</p>" +
+      "<p><strong>Colaborador:</strong> " + escapar(x["Colaborador"]) + "</p>" +
+      "<p><strong>Nota:</strong> " + escapar(x["Nota"]) + "</p>" +
+      "<p><strong>Pontuação:</strong> " + escapar(x["Total"]) + "/" + escapar(x["Máximo"]) + "</p>" +
+      "<p><strong>Duração:</strong> " + escapar(x["Duração (min)"]) + " min</p>" +
+      "<h3>Por etapa</h3>" + blocoObjeto(porEtapa) +
+      "<h3>Descritores</h3>" + blocoObjeto(descritores) +
+      "<h3>Respostas</h3>" + blocoObjeto(respostas) +
+      "<h3>Produções</h3>" + blocoObjeto(producoes) +
+      "<h3>Consequências</h3>" + blocoObjeto(consequencias) +
+      "<h3>Dossiê do gestor</h3><p>" + escapar(x["Dossiê do gestor"]) + "</p>" +
+      "<p><button type='button' onclick='document.querySelector("#detalhesResultado").innerHTML=""'>Fechar detalhes</button></p>" +
+    "</section>";
+}
+
+document.querySelector("#entrarProfessor").addEventListener("click", liberarPainel);
+document.querySelector("#senhaProfessor").addEventListener("keydown", function(e) { if (e.key === "Enter") liberarPainel(); });
+document.querySelector("#atualizarResultados").addEventListener("click", carregarResultados);
+document.querySelector("#sairProfessor").addEventListener("click", sairPainel);
 verificarAcesso();
-function liberarPainel(){const senha=document.querySelector("#senhaProfessor").value.trim();if(senha!==CODIGO_PROFESSOR){document.querySelector("#erroProfessor").style.display="block";document.querySelector("#senhaProfessor").focus();return}sessionStorage.setItem("painelProfessorAutorizado","1");document.querySelector("#loginProfessor").style.display="none";document.querySelector("#painelProfessor").style.display="block"}
-function verificarAcesso(){if(sessionStorage.getItem("painelProfessorAutorizado")==="1"){document.querySelector("#loginProfessor").style.display="none";document.querySelector("#painelProfessor").style.display="block"}}
-document.querySelector("#entrarProfessor").onclick=liberarPainel;document.querySelector("#senhaProfessor").addEventListener("keydown",function(e){if(e.key==="Enter")liberarPainel()});verificarAcesso();
-document.querySelector("#files").onchange=async function(e){const data=[];for(const f of e.target.files){try{data.push(JSON.parse(await f.text()))}catch(err){}}if(!data.length)return;let sums={d1:0,d2:0,d3:0};data.forEach(x=>{sums.d1+=x.pontuacao?.d1||0;sums.d2+=x.pontuacao?.d2||0;sums.d3+=x.pontuacao?.d3||0});const n=data.length;document.querySelector("#out").innerHTML="<h2>"+n+" participantes</h2><div class='grid'><div class='notice'><div class='score'>"+Math.round(sums.d1/n)+"%</div>Descritor 1 — Recrutamento/Seleção</div><div class='notice'><div class='score'>"+Math.round(sums.d2/n)+"%</div>Descritor 2 — CHA</div><div class='notice'><div class='score'>"+Math.round(sums.d3/n)+"%</div>Descritor 3 — T&D</div></div><h2>Registros</h2><table><tr><th>Participante</th><th>Turma</th><th>D1</th><th>D2</th><th>D3</th><th>Contratado</th></tr>"+data.map(x=>"<tr><td>"+x.participante+"</td><td>"+x.turma+"</td><td>"+(x.pontuacao?.d1||0)+"%</td><td>"+(x.pontuacao?.d2||0)+"%</td><td>"+(x.pontuacao?.d3||0)+"%</td><td>"+x.contratado+"</td></tr>").join("")+"</table>"};
-</script></body></html>
+</script>
+</body>
+</html>
